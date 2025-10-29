@@ -120,7 +120,7 @@ export const rateLimit = (windowMs: number, maxRequests: number) => {
  * Request validation middleware
  */
 export const validateRequest = (options: ValidationOptions) => {
-  return (req: Request, res: Response<ApiResponse>, next: NextFunction) => {
+  return (req: Request, res: Response<ApiResponse>, next: NextFunction): void => {
     const errors: string[] = [];
 
     // Check required fields
@@ -255,4 +255,22 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
   });
   
   next();
+};
+
+/**
+ * Helper function to send standardized API responses
+ */
+export const sendResponse = <T>(res: Response<ApiResponse<T>>, statusCode: number, success: boolean, data?: T, message?: string, error?: string, details?: any) => {
+  const response: ApiResponse<T> = {
+    success,
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  };
+
+  if (data !== undefined) response.data = data;
+  if (message) response.message = message;
+  if (error) response.error = error;
+  if (details) response.details = details;
+
+  return res.status(statusCode).json(response);
 };

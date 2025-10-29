@@ -1,18 +1,44 @@
 import express from 'express';
-import { login, signup, getUserProfile, promoteUserToAdmin, getallUsers, verifyEmail, forgotPassword, resetPassword, resendVerificationEmail } from '../controllers/authController';
-import auth from '../Middlewares/authMiddleware';
-import isAdmin from '../Middlewares/adminMiddleware';
+import { login, signup, verifyEmail, forgotPassword, resetPassword, resendVerificationEmail } from '../controllers/authController';
+import { validateRequest } from '../utils/validation';
 
 const router = express.Router();
 
-router.post('/login', login);
-router.post('/signup', signup);
-router.get('/user-profile', auth, getUserProfile)
-router.get('/users', auth, isAdmin, getallUsers)
-router.post('/verify-email', verifyEmail)
-router.post('/forgot-password', forgotPassword)
-router.post('/reset-password', resetPassword)
-router.post('/resend-verification-email', resendVerificationEmail)
-router.post('/promote-to-admin', auth, isAdmin, promoteUserToAdmin);
+// Signup validation
+router.post('/signup', validateRequest({
+  required: ['firstname', 'surname', 'email', 'password', 'phone', 'department'],
+  email: ['email'],
+  password: ['password'],
+  minLength: { firstname: 2, surname: 2, password: 6 },
+  maxLength: { firstname: 50, surname: 50, email: 254, password: 128 }
+}), signup);
+
+// Login validation
+router.post('/login', validateRequest({
+  required: ['email', 'password'],
+  email: ['email'],
+  password: ['password']
+}), login);
+
+// Email verification
+router.post('/verify-email', verifyEmail);
+
+// Forgot password validation
+router.post('/forgot-password', validateRequest({
+  required: ['email'],
+  email: ['email']
+}), forgotPassword);
+
+// Reset password validation
+router.post('/reset-password', validateRequest({
+  required: ['token', 'newPassword'],
+  password: ['newPassword']
+}), resetPassword);
+
+// Resend verification email validation
+router.post('/resend-verification-email', validateRequest({
+  required: ['email'],
+  email: ['email']
+}), resendVerificationEmail);
 
 export default router;
